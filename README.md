@@ -1,5 +1,7 @@
 # Battery Remaining Useful Life (RUL) Prediction
 
+Link: [http://ec2-13-223-89-169.compute-1.amazonaws.com:8050/]
+
 A comprehensive machine learning project for predicting battery Remaining Useful Life (RUL) using advanced modeling techniques, cross-dataset transfer learning, and production-ready web deployment.
 
 [![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
@@ -772,41 +774,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **PyTorch**: Deep learning (optional experiments)
 - **Pandas/NumPy**: Data manipulation
 - **Joblib**: Model serialization
-
-## 📞 Contact & Support
-
-### Get Help
-- **Issues**: [GitHub Issues](https://github.com/dniamsaard4codework/RUL_Project/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/dniamsaard4codework/RUL_Project/discussions)
-
-### Citation
-
-If you use this project in your research, please cite:
-
-```bibtex
-@software{battery_rul_prediction_2025,
-  title = {Battery Remaining Useful Life Prediction with Transfer Learning},
-  author = {Battery RUL Prediction Team},
-  year = {2025},
-  url = {https://github.com/dniamsaard4codework/RUL_Project}
-}
-```
-
-## 📝 Changelog
-
-### Version 1.0.0 (November 11, 2025)
-- ✅ Initial release with Zenodo and NASA models
-- ✅ Interactive web dashboard with 16 protocols
-- ✅ Docker deployment with pre-built images
-- ✅ Complete CI/CD pipeline
-- ✅ Comprehensive test suite
-- ✅ Full documentation
-
-### Version 0.1.0 (November 10, 2025)
-- ✅ Model development and training
-- ✅ Transfer learning implementation
-- ✅ Feature engineering pipeline
-- ✅ Initial evaluation and analysis
 
 ---
 
