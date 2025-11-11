@@ -48,8 +48,8 @@ RUN uv pip install --system --no-cache torch torchvision torchaudio --index-url 
 COPY app.py model_inference_example.py ./
 COPY models/ ./models/
 
-# Note: datasets/ directory is mounted as a volume in docker-compose.yml
-# This keeps the Docker image small and allows easy data updates
+# Note: Models are included in the image for inference
+# Datasets are not needed in production - only models are required
 
 # Expose the port that the app runs on
 EXPOSE 8050

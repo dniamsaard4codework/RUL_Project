@@ -9,8 +9,6 @@ services:
     volumes:
       # Mount models directory for easy model updates without rebuilding
       - ./models:/app/models:ro
-      # Mount datasets directory (read-only)
-      - ./datasets:/app/datasets:ro
       # Optional: Mount for development (comment out in production)
       # - ./app.py:/app/app.py
       # - ./model_inference_example.py:/app/model_inference_example.py

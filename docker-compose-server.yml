@@ -1,0 +1,22 @@
+services:
+  rul-app:
+    image: dniamsaard4codework/battery-rul-predictor:latest
+    container_name: battery-rul-predictor
+    ports:
+      - "8050:8050"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8050/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - rul-network
+
+networks:
+  rul-network:
+    driver: bridge
