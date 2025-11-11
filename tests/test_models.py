@@ -15,12 +15,23 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from model_inference_example import BatteryRULPredictor
 
 
+# Check if model files exist
+MODELS_DIR = Path(__file__).parent.parent / 'models'
+ZENODO_MODEL_EXISTS = (MODELS_DIR / 'zenodo_best_model_latest.pkl').exists()
+NASA_MODEL_EXISTS = (MODELS_DIR / 'nasa_finetuned_model_latest.pkl').exists()
+
+# Skip message
+SKIP_MESSAGE = "Model files not found - models are too large for Git (use Git LFS or train locally)"
+
+
 class TestZenodoModel:
     """Test cases for Zenodo model"""
     
     @pytest.fixture
     def predictor(self):
         """Initialize Zenodo predictor"""
+        if not ZENODO_MODEL_EXISTS:
+            pytest.skip(SKIP_MESSAGE)
         return BatteryRULPredictor(model_type='zenodo')
     
     @pytest.fixture
@@ -163,6 +174,8 @@ class TestNASAModel:
     @pytest.fixture
     def predictor(self):
         """Initialize NASA predictor"""
+        if not NASA_MODEL_EXISTS:
+            pytest.skip(SKIP_MESSAGE)
         return BatteryRULPredictor(model_type='nasa')
     
     @pytest.fixture
@@ -269,6 +282,7 @@ class TestNASAModel:
 class TestModelComparison:
     """Test cases comparing both models"""
     
+    @pytest.mark.skipif(not (ZENODO_MODEL_EXISTS and NASA_MODEL_EXISTS), reason=SKIP_MESSAGE)
     def test_both_models_load(self):
         """Test that both models can be loaded"""
         zenodo_predictor = BatteryRULPredictor(model_type='zenodo')
@@ -277,6 +291,7 @@ class TestModelComparison:
         assert zenodo_predictor.model is not None
         assert nasa_predictor.model is not None
     
+    @pytest.mark.skipif(not (ZENODO_MODEL_EXISTS and NASA_MODEL_EXISTS), reason=SKIP_MESSAGE)
     def test_models_have_different_features(self):
         """Test that models require different number of features"""
         zenodo_predictor = BatteryRULPredictor(model_type='zenodo')
