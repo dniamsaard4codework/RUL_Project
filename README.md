@@ -290,7 +290,7 @@ RUL_Project/
 |--------|-------------|------------|
 | R² Score | 0.85+ | 0.94 |
 | Training Data | Full dataset | 15% fine-tuning |
-| Features | 39 | 39 (common) |
+| Features | 39 | 10 (common) |
 | Confidence | High | Very High |
 | Use Case | General batteries | Aerospace batteries |
 
