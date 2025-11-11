@@ -231,9 +231,14 @@ class BatteryRULPredictor:
                 print("Model does not support feature importances")
                 return None
         
+        # Ensure feature_names and importances have the same length
+        min_len = min(len(feature_names), len(importances))
+        feature_names = feature_names[:min_len]
+        importances = importances[:min_len]
+        
         # Create dataframe
         importance_df = pd.DataFrame({
-            'Feature': feature_names[:len(importances)],
+            'Feature': feature_names,
             'Importance': importances
         })
         
