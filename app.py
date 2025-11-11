@@ -15,8 +15,9 @@ app = Dash(__name__, external_stylesheets=[
 ], suppress_callback_exceptions=True)
 app.title = "Battery RUL Predictor"
 
-# Initialize the predictor (using 'zenodo' model)
-predictor = BatteryRULPredictor(model_type='zenodo')
+# Initialize the predictors (both models)
+predictor_zenodo = BatteryRULPredictor(model_type='zenodo')
+predictor_nasa = BatteryRULPredictor(model_type='nasa')
 
 # Protocol descriptions
 PROTOCOL_DESCRIPTIONS = {
@@ -140,17 +141,26 @@ def landing_page():
                       'opacity': '0.95',
                       'letterSpacing': '0.3px'
                   }),
-            html.Div([
-                dcc.Link(
-                    dbc.Button("Start Prediction →", 
-                              color="light",
-                              size="lg",
-                              className="mt-3",
-                              style=CUSTOM_STYLE['button-primary']),
-                    href='/prediction',
-                    style={'textDecoration': 'none'}
-                )
-            ], className="text-center")
+                    html.Div([
+                        dcc.Link(
+                            dbc.Button("Start Zenodo Prediction →", 
+                                      color="light",
+                                      size="lg",
+                                      className="mt-3 me-3",
+                                      style=CUSTOM_STYLE['button-primary']),
+                            href='/prediction',
+                            style={'textDecoration': 'none'}
+                        ),
+                        dcc.Link(
+                            dbc.Button("Start NASA Prediction →", 
+                                      color="light",
+                                      size="lg",
+                                      className="mt-3",
+                                      style={**CUSTOM_STYLE['button-primary'], 'background': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'}),
+                            href='/nasa-prediction',
+                            style={'textDecoration': 'none'}
+                        )
+                    ], className="text-center")
         ], style=CUSTOM_STYLE['hero-section']),
 
         # Project Description
@@ -351,14 +361,25 @@ def landing_page():
                     html.H3("Ready to Predict Battery Life?", 
                            className="text-center mb-4",
                            style={'fontFamily': 'Poppins, sans-serif', 'fontWeight': '700', 'fontSize': '32px', 'color': '#2d3748'}),
-                    dcc.Link(
-                        dbc.Button("Launch Predictor →", 
-                                  color="primary",
-                                  size="lg",
-                                  style=CUSTOM_STYLE['button-primary']),
-                        href='/prediction',
-                        style={'textDecoration': 'none'}
-                    )
+                    html.Div([
+                        dcc.Link(
+                            dbc.Button("Launch Zenodo Predictor →", 
+                                      color="primary",
+                                      size="lg",
+                                      className="me-3",
+                                      style=CUSTOM_STYLE['button-primary']),
+                            href='/prediction',
+                            style={'textDecoration': 'none'}
+                        ),
+                        dcc.Link(
+                            dbc.Button("Launch NASA Predictor →", 
+                                      color="primary",
+                                      size="lg",
+                                      style={**CUSTOM_STYLE['button-primary'], 'background': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'}),
+                            href='/nasa-prediction',
+                            style={'textDecoration': 'none'}
+                        )
+                    ], className="text-center")
                 ], className="text-center py-5",
                    style={'background': 'linear-gradient(135deg, #f6f9fc 0%, #edf2f7 100%)', 'borderRadius': '20px'})
             ], width=12)
@@ -665,6 +686,274 @@ def prediction_page():
         ], style=CUSTOM_STYLE['card-style']),
     ], fluid=True, className="py-4", style={'backgroundColor': '#fafbfc', 'minHeight': '100vh'})
 
+# NASA Prediction Page Layout
+def nasa_prediction_page():
+    # NASA model required features
+    nasa_features = [
+        "voltage_v_mean",
+        "current_a_mean",
+        "aux_temperature_1_c_mean",
+        "current_a_abs_mean",
+        "rolling_mean_current_a_mean",
+        "rolling_mean_aux_temperature_1_c_mean",
+        "rolling_mean_current_a_abs_mean",
+        "rolling_std_current_a_mean",
+        "rolling_std_aux_temperature_1_c_mean",
+        "rolling_std_current_a_abs_mean"
+    ]
+    
+    return dbc.Container([
+        # Header with back button
+        dbc.Row([
+            dbc.Col([
+                dcc.Link(
+                    dbc.Button("← Back to Home", color="link", 
+                              className="mb-3", 
+                              style={
+                                  'fontSize': '16px', 
+                                  'fontFamily': 'Inter, sans-serif',
+                                  'fontWeight': '500',
+                                  'color': '#f5576c'
+                              }),
+                    href='/',
+                    style={'textDecoration': 'none'}
+                )
+            ], width=12)
+        ]),
+        
+        # Title Section
+        html.Div([
+            html.H2("🚀 NASA Battery RUL Predictor",
+                    className="text-center mb-3",
+                    style={
+                        'fontFamily': 'Poppins, sans-serif',
+                        'fontWeight': '800',
+                        'color': '#2d3748',
+                        'fontSize': '42px',
+                        'letterSpacing': '-0.5px'
+                    }),
+            html.P(
+                "Fine-tuned NASA model for accurate RUL prediction. Enter values manually or upload a CSV file.",
+                className="text-center mb-5",
+                style={
+                    'fontSize': '16px',
+                    'color': '#718096',
+                    'fontFamily': 'Inter, sans-serif',
+                    'fontWeight': '400',
+                    'maxWidth': '700px',
+                    'margin': '0 auto 40px auto'
+                }
+            ),
+        ]),
+
+        # Input Mode Selection
+        dbc.Card([
+            dbc.CardBody([
+                html.Label("Select Input Mode:",
+                          className="mb-3", 
+                          style={
+                              'fontSize': '17px',
+                              'fontWeight': '600',
+                              'fontFamily': 'Poppins, sans-serif',
+                              'color': '#2d3748'
+                          }),
+                dbc.RadioItems(
+                    id="nasa-input-mode",
+                    options=[
+                        {"label": " 📝 Manual Input", "value": "manual"},
+                        {"label": " 📁 CSV Upload", "value": "csv"},
+                    ],
+                    value="manual",
+                    inline=True,
+                    style={'fontSize': '15px', 'fontFamily': 'Inter, sans-serif'}
+                ),
+            ])
+        ], style=CUSTOM_STYLE['card-style'], className="mb-4"),
+
+        # Manual Input Section
+        html.Div(id="nasa-manual-input-section", children=[
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Enter Battery Features Manually",
+                           className="mb-4",
+                           style={'fontFamily': 'Poppins, sans-serif', 'fontWeight': '600', 'color': '#2d3748'}),
+                    
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Label("Voltage Mean (V)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-voltage_v_mean", type="number", placeholder="e.g., 3.7", step=0.01),
+                        ], md=6, className="mb-3"),
+                        dbc.Col([
+                            dbc.Label("Current Mean (A)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-current_a_mean", type="number", placeholder="e.g., 1.5", step=0.01),
+                        ], md=6, className="mb-3"),
+                    ]),
+                    
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Label("Temperature Mean (°C)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-aux_temperature_1_c_mean", type="number", placeholder="e.g., 25.0", step=0.1),
+                        ], md=6, className="mb-3"),
+                        dbc.Col([
+                            dbc.Label("Current Absolute Mean (A)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-current_a_abs_mean", type="number", placeholder="e.g., 1.5", step=0.01),
+                        ], md=6, className="mb-3"),
+                    ]),
+                    
+                    html.Hr(className="my-4"),
+                    html.H6("Rolling Statistics Features", 
+                           className="mb-3",
+                           style={'fontFamily': 'Poppins, sans-serif', 'fontWeight': '600', 'color': '#667eea'}),
+                    
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Label("Rolling Mean Current (A)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-rolling_mean_current_a_mean", type="number", placeholder="e.g., 1.5", step=0.01),
+                        ], md=6, className="mb-3"),
+                        dbc.Col([
+                            dbc.Label("Rolling Mean Temperature (°C)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-rolling_mean_aux_temperature_1_c_mean", type="number", placeholder="e.g., 25.0", step=0.1),
+                        ], md=6, className="mb-3"),
+                    ]),
+                    
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Label("Rolling Mean Current Abs (A)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-rolling_mean_current_a_abs_mean", type="number", placeholder="e.g., 1.5", step=0.01),
+                        ], md=6, className="mb-3"),
+                        dbc.Col([
+                            dbc.Label("Rolling Std Current (A)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-rolling_std_current_a_mean", type="number", placeholder="e.g., 0.2", step=0.01),
+                        ], md=6, className="mb-3"),
+                    ]),
+                    
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Label("Rolling Std Temperature (°C)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-rolling_std_aux_temperature_1_c_mean", type="number", placeholder="e.g., 1.0", step=0.1),
+                        ], md=6, className="mb-3"),
+                        dbc.Col([
+                            dbc.Label("Rolling Std Current Abs (A)", style={'fontSize': '14px', 'fontWeight': '500'}),
+                            dbc.Input(id="input-rolling_std_current_a_abs_mean", type="number", placeholder="e.g., 0.2", step=0.01),
+                        ], md=6, className="mb-3"),
+                    ]),
+                    
+                    html.Div([
+                        dbc.Button("🔮 Predict RUL", 
+                                  id="nasa-predict-button",
+                                  color="primary",
+                                  size="lg",
+                                  className="mt-4",
+                                  style={**CUSTOM_STYLE['button-primary'], 'background': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'})
+                    ], className="text-center")
+                ])
+            ], style=CUSTOM_STYLE['card-style'], className="mb-4")
+        ]),
+
+        # CSV Upload Section
+        html.Div(id="nasa-csv-input-section", children=[
+            dbc.Card([
+                dbc.CardBody([
+                    dcc.Upload(
+                        id="nasa-upload-data",
+                        children=html.Div([
+                            html.Div("📁", style={'fontSize': '56px', 'marginBottom': '15px'}),
+                            html.Div([
+                                "Drag and Drop or ",
+                                html.A("Select CSV File", 
+                                      style={
+                                          'fontWeight': '600',
+                                          'color': '#f5576c',
+                                          'textDecoration': 'underline',
+                                          'cursor': 'pointer'
+                                      })
+                            ], style={
+                                'fontFamily': 'Inter, sans-serif',
+                                'fontSize': '18px',
+                                'color': '#4a5568',
+                                'fontWeight': '500'
+                            }),
+                            html.Div("File should contain the required NASA features", 
+                                    style={
+                                        'fontSize': '13px',
+                                        'color': '#a0aec0',
+                                        'marginTop': '10px',
+                                        'fontFamily': 'Inter, sans-serif'
+                                    })
+                        ], style={'textAlign': 'center'}),
+                        style={
+                            "width": "100%",
+                            "height": "180px",
+                            "lineHeight": "30px",
+                            "borderWidth": "2px",
+                            "borderStyle": "dashed",
+                            "borderRadius": '20px',
+                            "textAlign": "center",
+                            "padding": "20px",
+                            "backgroundColor": "#fff5f7",
+                            "cursor": "pointer",
+                            "borderColor": "#f5576c",
+                            "display": "flex",
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                            "transition": "all 0.3s ease"
+                        },
+                        multiple=False,
+                    ),
+                ])
+            ], style=CUSTOM_STYLE['card-style'], className="mb-4"),
+        ], style={'display': 'none'}),
+
+        # Status message
+        html.Div(id="nasa-status-msg", className="text-center mb-4",
+                style={
+                    'fontSize': '15px',
+                    'fontWeight': '500',
+                    'fontFamily': 'Inter, sans-serif',
+                    'padding': '12px 20px',
+                    'borderRadius': '12px'
+                }),
+
+        # Prediction Result Card
+        dbc.Card([
+            dbc.CardBody([
+                html.H3("🎯 NASA RUL Prediction Result:",
+                        className="card-title text-center mb-4",
+                        style={
+                            'fontFamily': 'Poppins, sans-serif',
+                            'fontWeight': '700',
+                            'color': '#2d3748',
+                            'fontSize': '26px'
+                        }),
+                html.Div(id="nasa-prediction-output",
+                         children="--",
+                         className="text-center",
+                         style={
+                             "fontSize": "56px", 
+                             "fontWeight": "800",
+                             "color": "#f5576c",
+                             "fontFamily": "Poppins, sans-serif",
+                             "letterSpacing": "-1px"
+                         }),
+            ])
+        ], style={**CUSTOM_STYLE['card-style'], 'background': 'linear-gradient(135deg, #fff5f7 0%, #ffeef2 100%)'}, className="mb-4"),
+
+        # Feature Info Card
+        dbc.Card([
+            dbc.CardBody([
+                html.H5("📊 Required NASA Features",
+                       className="mb-3",
+                       style={'fontFamily': 'Poppins, sans-serif', 'fontWeight': '600', 'color': '#2d3748'}),
+                html.P("The NASA model requires the following 10 features:",
+                      style={'fontSize': '14px', 'color': '#718096', 'fontFamily': 'Inter, sans-serif'}),
+                html.Ul([
+                    html.Li(feat, style={'fontSize': '13px', 'marginBottom': '5px', 'fontFamily': 'monospace'})
+                    for feat in nasa_features
+                ], style={'color': '#4a5568'})
+            ])
+        ], style=CUSTOM_STYLE['card-style']),
+    ], fluid=True, className="py-4", style={'backgroundColor': '#fafbfc', 'minHeight': '100vh'})
+
 # Main layout with page container
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -763,6 +1052,8 @@ app.index_string = '''
 def display_page(pathname):
     if pathname == '/prediction':
         return prediction_page()
+    elif pathname == '/nasa-prediction':
+        return nasa_prediction_page()
     else:
         return landing_page()
 
@@ -848,7 +1139,7 @@ def update_output(contents, selected_protocol, filename):
         for protocol in range(1, 17):
             row_copy = last_row.copy()
             row_copy["protocol_id"] = protocol
-            preds = predictor.predict(row_copy)
+            preds = predictor_zenodo.predict(row_copy)
             rul_value = float(preds[0])
             protocol_rul_list.append({
                 "protocol_id": protocol,
@@ -940,6 +1231,121 @@ def update_output(contents, selected_protocol, filename):
             [],
             {},
         )
+
+
+# NASA Input Mode Toggle Callback
+@app.callback(
+    Output("nasa-manual-input-section", "style"),
+    Output("nasa-csv-input-section", "style"),
+    Input("nasa-input-mode", "value"),
+)
+def toggle_nasa_input_mode(mode):
+    if mode == "manual":
+        return {'display': 'block'}, {'display': 'none'}
+    else:
+        return {'display': 'none'}, {'display': 'block'}
+
+
+# NASA Manual Prediction Callback
+@app.callback(
+    Output("nasa-prediction-output", "children"),
+    Output("nasa-status-msg", "children"),
+    Input("nasa-predict-button", "n_clicks"),
+    Input("nasa-upload-data", "contents"),
+    State("input-voltage_v_mean", "value"),
+    State("input-current_a_mean", "value"),
+    State("input-aux_temperature_1_c_mean", "value"),
+    State("input-current_a_abs_mean", "value"),
+    State("input-rolling_mean_current_a_mean", "value"),
+    State("input-rolling_mean_aux_temperature_1_c_mean", "value"),
+    State("input-rolling_mean_current_a_abs_mean", "value"),
+    State("input-rolling_std_current_a_mean", "value"),
+    State("input-rolling_std_aux_temperature_1_c_mean", "value"),
+    State("input-rolling_std_current_a_abs_mean", "value"),
+    State("nasa-upload-data", "filename"),
+    prevent_initial_call=True
+)
+def nasa_predict(n_clicks, csv_contents, voltage, current, temp, current_abs,
+                 roll_mean_current, roll_mean_temp, roll_mean_current_abs,
+                 roll_std_current, roll_std_temp, roll_std_current_abs, filename):
+    
+    ctx = callback_context
+    if not ctx.triggered:
+        return "--", ""
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    try:
+        # Handle CSV upload
+        if trigger_id == "nasa-upload-data" and csv_contents is not None:
+            content_type, content_string = csv_contents.split(",", 1)
+            decoded = base64.b64decode(content_string)
+            try:
+                s = decoded.decode("utf-8")
+            except UnicodeDecodeError:
+                s = decoded.decode("ISO-8859-1")
+            
+            df_raw = pd.read_csv(io.StringIO(s))
+            if df_raw.empty:
+                return "--", html.Div("❌ Uploaded file is empty.", style={'color': '#dc3545'})
+            
+            # Use the last row
+            last_row = df_raw.iloc[[-1]]
+            
+            # Predict
+            predictions = predictor_nasa.predict(last_row)
+            rul_value = float(predictions[0])
+            
+            prediction_text = f"{rul_value:.2f} cycles"
+            status = html.Div([
+                f"✅ Successfully predicted from file: ",
+                html.Strong(filename)
+            ], style={'color': '#28a745'})
+            
+            return prediction_text, status
+        
+        # Handle manual input
+        elif trigger_id == "nasa-predict-button":
+            # Validate all inputs are provided
+            inputs = [voltage, current, temp, current_abs, roll_mean_current, 
+                     roll_mean_temp, roll_mean_current_abs, roll_std_current, 
+                     roll_std_temp, roll_std_current_abs]
+            
+            if any(x is None for x in inputs):
+                return "--", html.Div("❌ Please fill in all feature values.", style={'color': '#dc3545'})
+            
+            # Create DataFrame with manual inputs
+            input_data = pd.DataFrame({
+                "voltage_v_mean": [voltage],
+                "current_a_mean": [current],
+                "aux_temperature_1_c_mean": [temp],
+                "current_a_abs_mean": [current_abs],
+                "rolling_mean_current_a_mean": [roll_mean_current],
+                "rolling_mean_aux_temperature_1_c_mean": [roll_mean_temp],
+                "rolling_mean_current_a_abs_mean": [roll_mean_current_abs],
+                "rolling_std_current_a_mean": [roll_std_current],
+                "rolling_std_aux_temperature_1_c_mean": [roll_std_temp],
+                "rolling_std_current_a_abs_mean": [roll_std_current_abs]
+            })
+            
+            # Predict
+            predictions = predictor_nasa.predict(input_data)
+            rul_value = float(predictions[0])
+            
+            prediction_text = f"{rul_value:.2f} cycles"
+            status = html.Div("✅ Prediction completed successfully!", style={'color': '#28a745'})
+            
+            return prediction_text, status
+        
+        return "--", ""
+    
+    except Exception as e:
+        print(f"NASA Prediction Error: {e}")
+        return "--", html.Div([
+            "❌ Error during prediction: ",
+            html.Br(),
+            html.Small(str(e), style={'fontSize': '12px'})
+        ], style={'color': '#dc3545'})
 
 
 if __name__ == "__main__":
