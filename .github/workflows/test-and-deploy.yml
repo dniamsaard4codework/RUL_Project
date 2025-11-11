@@ -56,12 +56,15 @@ jobs:
         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
     
     - name: Deploy to Server
+      env:
+        DOCKER_IMAGE: ${{ secrets.DOCKER_IMAGE }}
       run: |
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
           cd ${{ secrets.DEPLOY_PATH }}
           git pull origin main
+          export DOCKER_IMAGE="${{ secrets.DOCKER_IMAGE }}"
+          docker-compose pull
           docker-compose down
-          docker-compose build
           docker-compose up -d
           docker-compose ps
         EOF

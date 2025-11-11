@@ -1,5 +1,8 @@
 services:
   rul-app:
+    # Use pre-built image from Docker Hub (contains models)
+    image: ${DOCKER_IMAGE:-battery-rul-predictor:latest}
+    # Fallback to local build if image not available
     build:
       context: .
       dockerfile: Dockerfile
