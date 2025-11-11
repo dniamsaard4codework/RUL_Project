@@ -16,6 +16,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Pull Docker image with models
+      run: |
+        docker pull dniamsaard4codework/battery-rul-predictor:latest
+    
+    - name: Extract models from Docker image
+      run: |
+        # Create temporary container to copy models
+        docker create --name temp-container dniamsaard4codework/battery-rul-predictor:latest
+        docker cp temp-container:/app/models ./models
+        docker rm temp-container
+    
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
