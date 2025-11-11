@@ -1,0 +1,32 @@
+services:
+  rul-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: battery-rul-predictor
+    ports:
+      - "8050:8050"
+    volumes:
+      # Mount models directory for easy model updates without rebuilding
+      - ./models:/app/models:ro
+      # Mount datasets directory (read-only)
+      - ./datasets:/app/datasets:ro
+      # Optional: Mount for development (comment out in production)
+      # - ./app.py:/app/app.py
+      # - ./model_inference_example.py:/app/model_inference_example.py
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8050/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - rul-network
+
+networks:
+  rul-network:
+    driver: bridge
